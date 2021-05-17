@@ -7,6 +7,7 @@ import torch.optim as optim
 import torch.nn.functional as F
 import dgl
 
+import logzero
 from logzero import logger
 from pathlib import Path
 from ruamel.yaml import YAML
@@ -14,6 +15,7 @@ from torch.utils.data import DataLoader
 from dgl.data.utils import Subset
 from sklearn.metrics import mean_absolute_error
 from qm9 import QM9
+from doping import DopingDataset
 from modules.initializers import GlorotOrthogonal
 from modules.dimenet import DimeNet
 from modules.dimenet_pp import DimeNetPP
@@ -109,7 +111,9 @@ def evaluate(device, model, valid_loader):
 
 @click.command()
 @click.option('-m', '--model-cnf', type=click.Path(exists=True), help='Path of model config yaml.')
+
 def main(model_cnf):
+    logzero.logfile('logfile6.log')
     yaml = YAML(typ='safe')
     model_cnf = yaml.load(Path(model_cnf))
     model_name, model_params, train_params, pretrain_params = model_cnf['name'], model_cnf['model'], model_cnf['train'], model_cnf['pretrain']
@@ -124,7 +128,10 @@ def main(model_cnf):
         model_params['output_init'] = GlorotOrthogonal
 
     logger.info('Loading Data Set')
-    dataset = QM9(label_keys=model_params['targets'], edge_funcs=[edge_init])
+
+    dataset = DopingDataset(label_keys=model_params['targets'],edge_funcs=[edge_init],cutoff=model_params['cutoff'])
+
+    # dataset = QM9(label_keys=model_params['targets'], edge_funcs=[edge_init])
 
     # data split
     train_data, valid_data, test_data = split_dataset(dataset,
@@ -229,7 +236,10 @@ def main(model_cnf):
             predictions, labels = evaluate(device, ema_model, valid_loader)
 
             valid_mae = mean_absolute_error(labels, predictions)
-            logger.info(f'Epoch {i} | Train Loss {train_loss:.4f} | Val MAE {valid_mae:.4f}')
+
+            predictions, labels = evaluate(device, ema_model, test_loader)
+            test_mae = mean_absolute_error(labels, predictions)
+            logger.info(f'Epoch {i} | Train Loss {train_loss:.4f} | Val MAE {valid_mae:.4f} | Test MAE {test_mae:.4f}')
 
             if valid_mae > best_mae:
                 no_improvement += 1
