@@ -37,7 +37,7 @@ class DopingDataset(QM9Dataset):
         """ step 1, if True, goto step 5; else goto download(step 2), then step 3"""
         graph_path = f'{self.save_path}/dgl_Mat_graph.bin'
         line_graph_path = f'{self.save_path}/dgl_Mat_line_graph.bin'
-        return not os.path.exists(graph_path) and os.path.exists(line_graph_path)
+        return os.path.exists(graph_path) and os.path.exists(line_graph_path)
 
     def process(self):
         """ step 3 """
@@ -92,9 +92,9 @@ class DopingDataset(QM9Dataset):
 
             # calculate the distance between all atoms
             for i,j in [(1,0),(1,1),(0,1),(-1,1),(-1,0),(-1,-1),(0,-1),(1,-1)]:
-                R_inf=R+self.lattice[idx,0]*i*np.array([1,0,0])+self.lattice[idx,4]*j*np.array([0,1,0])
+                R_inf=R+self.lattice[idx,:3]*i+self.lattice[idx,3:6]*j
                 dist = np.linalg.norm(R[:, None, :] - R_inf[None, :, :], axis=-1)
-                # keep all edges that don't exceed the cutoff and delete self-loops
+                # keep all edges that don't exceed the cutoff 
                 adj = sp.csr_matrix(dist <= self.cutoff)
                 adj = adj.tocoo()
                 u, v = torch.tensor(adj.row), torch.tensor(adj.col)

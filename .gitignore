@@ -143,3 +143,7 @@ Icon
 __pycache__/
 *.lprof
 result*
+*.pickle
+*.png
+*.pth
+*.npy
