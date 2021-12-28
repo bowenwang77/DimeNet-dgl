@@ -1,6 +1,7 @@
 name: "dimenet"
-logname: ""
-with_dyn: True
+logname: "debug"
+with_dyn: False
+ori: False
 
 model:
   emb_size: 64
@@ -9,7 +10,7 @@ model:
   num_spherical: 7
   num_radial: 6
   envelope_exponent: 5
-  cutoff: 3.5
+  cutoff: 4.0
   num_before_skip: 1
   num_after_skip: 2
   num_dense_output: 3
@@ -17,8 +18,8 @@ model:
   targets: ['Energy']
 
 train:
-  num_train: 1807
-  num_valid: 602
+  num_train: 1807 #1807,1569
+  num_valid: 602 #602,523
   data_seed: 41
   lr: 0.001
   weight_decay: 0.0001

@@ -18,7 +18,7 @@ class DopingDataset(QM9Dataset):
 
     def __init__(self,
                  label_keys,
-                 with_dyn,
+                 with_dyn,ori,
                  edge_funcs=None,
                  cutoff=5.0,
                  raw_dir=None,
@@ -29,6 +29,7 @@ class DopingDataset(QM9Dataset):
         self.with_dyn=with_dyn
         self.graph_path=None
         self.line_graph_path=None
+        self.ori=ori
         # self._keys = ['mu', 'alpha', 'homo', 'lumo', 'gap', 'r2', 'zpve', 'U0', 'U', 'H', 'G', 'Cv']
         self._keys = ['Energy']
         self.npz_path = "dataset/npz"
@@ -42,21 +43,28 @@ class DopingDataset(QM9Dataset):
     def has_cache(self):
         """ step 1, if True, goto step 5; else goto download(step 2), then step 3"""
         if self.with_dyn:
-            graph_path = f'{self.bin_path}/WithDyn_Cut'+str(self.cutoff)+'.bin'
-            line_graph_path = f'{self.bin_path}/WithDyn_Cut'+str(self.cutoff)+'line.bin'
+            if self.ori:
+                graph_path = f'{self.bin_path}/Ori_WithDyn_Cut'+str(self.cutoff)+'.bin'
+                line_graph_path = f'{self.bin_path}/Ori_WithDyn_Cut'+str(self.cutoff)+'line.bin'
+            else:
+                graph_path = f'{self.bin_path}/WithDyn_Cut'+str(self.cutoff)+'.bin'
+                line_graph_path = f'{self.bin_path}/WithDyn_Cut'+str(self.cutoff)+'line.bin'
         else:
             graph_path = f'{self.bin_path}/NoDyn_Cut'+str(self.cutoff)+'.bin'
             line_graph_path = f'{self.bin_path}/NoDyn_Cut'+str(self.cutoff)+'line.bin'
         self.graph_path=graph_path
         self.line_graph_path=line_graph_path
         return os.path.exists(graph_path) and os.path.exists(line_graph_path)
-        # return False
+        # return False #Always generate new bin file
 
     def process(self):
         """ step 3 """
         # npz_path = f'{self.raw_dir}/qm9_eV.npz'
         if self.with_dyn:
-            npz_path = f'{self.npz_path}/MaterialWithDynamic.npz'
+            if self.ori:
+                npz_path = f'{self.npz_path}/Material2615.npz'
+            else:
+                npz_path = f'{self.npz_path}/MaterialWithDynamic.npz'
         else:
             npz_path = f'{self.npz_path}/MaterialNoDynamic.npz'
         data_dict = np.load(npz_path, allow_pickle=True)

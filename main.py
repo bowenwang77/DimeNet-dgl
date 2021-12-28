@@ -158,7 +158,8 @@ def main(model_cnf):
     yaml = YAML(typ='safe')
     model_cnf = yaml.load(Path(model_cnf))
     model_name, model_params, train_params, pretrain_params = model_cnf['name'], model_cnf['model'], model_cnf['train'], model_cnf['pretrain']
-    logname="Dyn"+str(model_cnf['with_dyn'])+\
+    logname=model_cnf['logname']+\
+        "Dyn"+str(model_cnf['with_dyn'])+\
         "Cut"+str(model_params['cutoff'])+\
         "Emb"+str(model_params['emb_size'])+\
         ","+time_stamp
@@ -183,11 +184,11 @@ def main(model_cnf):
 
     logger.info('Loading Data Set')
 
-    dataset = DopingDataset(label_keys=model_params['targets'],with_dyn=model_cnf['with_dyn'],edge_funcs=[edge_init],cutoff=model_params['cutoff'])
+    dataset = DopingDataset(label_keys=model_params['targets'],with_dyn=model_cnf['with_dyn'],ori=model_cnf['ori'],edge_funcs=[edge_init],cutoff=model_params['cutoff'])
 
     # dataset = QM9(label_keys=model_params['targets'], edge_funcs=[edge_init])
 
-    for train_params['num_train'] in [1807]:
+    for train_params['num_train'] in [train_params['num_train']]:
         logger.info('num_train')
         logger.info(train_params['num_train'])
     # data split
