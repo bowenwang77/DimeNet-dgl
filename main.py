@@ -6,6 +6,8 @@ import torch.nn as nn
 import torch.optim as optim
 import torch.nn.functional as F
 import dgl
+import wandb
+import time
 
 import logzero
 from logzero import logger
@@ -15,7 +17,8 @@ from torch.utils.data import DataLoader
 from dgl.data.utils import Subset
 from sklearn.metrics import mean_absolute_error
 from qm9 import QM9
-from doping import DopingDataset
+# from doping import DopingDataset
+from doping_NoDyn import DopingDataset
 from modules.initializers import GlorotOrthogonal
 from modules.dimenet import DimeNet
 from modules.dimenet_pp import DimeNetPP
@@ -87,7 +90,7 @@ def split_dataset2(dataset, num_train, num_valid, shuffle=False, random_state=No
     from itertools import accumulate
     num_data = len(dataset)
     assert num_train + num_valid < num_data
-    lengths = [num_train, int(num_data*0.1), int(num_data*0.1)]
+    lengths = [num_train, int(num_data*0.2), int(num_data*0.2)]
     if shuffle:
         indices = np.random.RandomState(seed=random_state).permutation(num_data)
     else:
@@ -150,14 +153,28 @@ def evaluate(device, model, valid_loader):
 @click.option('-m', '--model-cnf', type=click.Path(exists=True), help='Path of model config yaml.')
 
 def main(model_cnf):
-    logzero.logfile('test.log')
+    time_stamp = time.strftime('%Y-%m-%d %H:%M:%S',
+                    time.localtime(int(round(time.time() * 1000)) / 1000))
     yaml = YAML(typ='safe')
     model_cnf = yaml.load(Path(model_cnf))
     model_name, model_params, train_params, pretrain_params = model_cnf['name'], model_cnf['model'], model_cnf['train'], model_cnf['pretrain']
+    logname="Dyn"+str(model_cnf['with_dyn'])+\
+        "Cut"+str(model_params['cutoff'])+\
+        "Emb"+str(model_params['emb_size'])+\
+        ","+time_stamp
+    logzero.logfile('log/'+logname+'.log')
     logger.info(f'Model name: {model_name}')
     logger.info(f'Model params: {model_params}')
     logger.info(f'Train params: {train_params}')
-
+    wandb.init(
+        
+        project="material",
+        config=model_cnf,
+        name=logname,
+        # save_code=True,
+        # notes='train_set:'+str(train_set[cv_i])+' | test_set:'+str(test_set[cv_i]),
+        reinit=True
+    )
     if model_params['targets'] in ['mu', 'homo', 'lumo', 'gap', 'zpve']:
         model_params['output_init'] = nn.init.zeros_
     else:
@@ -166,11 +183,11 @@ def main(model_cnf):
 
     logger.info('Loading Data Set')
 
-    dataset = DopingDataset(label_keys=model_params['targets'],edge_funcs=[edge_init],cutoff=model_params['cutoff'])
+    dataset = DopingDataset(label_keys=model_params['targets'],with_dyn=model_cnf['with_dyn'],edge_funcs=[edge_init],cutoff=model_params['cutoff'])
 
     # dataset = QM9(label_keys=model_params['targets'], edge_funcs=[edge_init])
 
-    for train_params['num_train'] in [2088]:
+    for train_params['num_train'] in [1807]:
         logger.info('num_train')
         logger.info(train_params['num_train'])
     # data split
@@ -282,6 +299,9 @@ def main(model_cnf):
                     predictions, labels = evaluate(device, ema_model, test_loader)
                     test_mae = mean_absolute_error(labels, predictions)
                     logger.info(f'Epoch {i} | Train Loss {train_loss:.4f} | Val MAE {valid_mae:.4f} | Test MAE {test_mae:.4f}')
+                    wandb.log({'Train Loss': train_loss, 'Val MAE': valid_mae, 
+                        'test_mae': test_mae,               
+                        })
 
                     if valid_mae > best_mae:
                         no_improvement += 1
@@ -294,6 +314,8 @@ def main(model_cnf):
                         best_model = copy.deepcopy(ema_model)
                 else:
                     logger.info(f'Epoch {i} | Train Loss {train_loss:.4f}')
+                    wandb.log({'Train Loss': train_loss,                         
+                        })
                 
                 scheduler.step()
 

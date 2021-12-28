@@ -38,6 +38,7 @@ class DopingDataset(QM9Dataset):
         graph_path = f'{self.save_path}/dgl_Mat_graph.bin'
         line_graph_path = f'{self.save_path}/dgl_Mat_line_graph.bin'
         return os.path.exists(graph_path) and os.path.exists(line_graph_path)
+        # return False
 
     def process(self):
         """ step 3 """

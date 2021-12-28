@@ -147,3 +147,10 @@ result*
 *.png
 *.pth
 *.npy
+wandb
+chenliang
+*.csv
+
+dataset/bin/*
+dataset/csv/*
+dataset/npz/*
