@@ -1,15 +1,15 @@
 name: "dimenet"
 logname: ""
-with_dyn: True
+with_dyn: False
 
 model:
-  emb_size: 64
+  emb_size: 128
   num_blocks: 6
   num_bilinear: 8
   num_spherical: 7
   num_radial: 6
   envelope_exponent: 5
-  cutoff: 3.5
+  cutoff: 4.5
   num_before_skip: 1
   num_after_skip: 2
   num_dense_output: 3
@@ -27,7 +27,7 @@ train:
   epochs: 160
   early_stopping: 20
   num_workers: 12
-  gpu: 2
+  gpu: 3
   interval: 10
   step_size: 25
   gamma: 0.3
