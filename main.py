@@ -8,6 +8,7 @@ import torch.nn.functional as F
 import dgl
 import wandb
 import time
+import pdb
 
 import logzero
 from logzero import logger
@@ -60,7 +61,7 @@ def split_dataset(dataset, num_train, num_valid, shuffle=False, random_state=Non
         indices = np.arange(num_data)
     return [Subset(dataset, indices[offset - length:offset]) for offset, length in zip(accumulate(lengths), lengths)]
 
-def split_dataset2(dataset, num_train, num_valid, shuffle=False, random_state=None):
+def split_dataset2(dataset, split_ratio, shuffle=False, random_state=None):
     """Split dataset into training, validation and test set.
 
     Parameters
@@ -89,8 +90,11 @@ def split_dataset2(dataset, num_train, num_valid, shuffle=False, random_state=No
     """
     from itertools import accumulate
     num_data = len(dataset)
+    num_train = int(split_ratio*num_data)
+    num_valid = int((num_data-num_train)/2)
+    num_test = num_data-num_train-num_valid
     assert num_train + num_valid < num_data
-    lengths = [num_train, int(num_data*0.2), int(num_data*0.2)]
+    lengths = [num_train, num_valid, num_test]
     if shuffle:
         indices = np.random.RandomState(seed=random_state).permutation(num_data)
     else:
@@ -163,8 +167,12 @@ def main(model_cnf):
         "Cut"+str(model_params['cutoff'])+\
         "Emb"+str(model_params['emb_size'])+\
         ","+time_stamp
+    if model_cnf['ori']:
+        logname="Ori"+logname
+    use_vasp=str(model_cnf['with_dyn'])
+    origin_data=str(model_cnf['ori'])
     logzero.logfile('log/'+logname+'.log')
-    logger.info(f'Model name: {model_name}')
+    logger.info(f'Model name: {model_name} | After Dynamic Process: {use_vasp} | Use original data {origin_data}')
     logger.info(f'Model params: {model_params}')
     logger.info(f'Train params: {train_params}')
     wandb.init(
@@ -192,9 +200,13 @@ def main(model_cnf):
         logger.info('num_train')
         logger.info(train_params['num_train'])
     # data split
+        # train_data, valid_data, test_data = split_dataset(dataset,
+        #                                                 num_train=train_params['num_train'],
+        #                                                 num_valid=train_params['num_valid'],
+        #                                                 shuffle=True,
+        #                                                 random_state=train_params['data_seed'])
         train_data, valid_data, test_data = split_dataset2(dataset,
-                                                        num_train=train_params['num_train'],
-                                                        num_valid=train_params['num_valid'],
+                                                        split_ratio=train_params['split_ratio'],
                                                         shuffle=True,
                                                         random_state=train_params['data_seed'])
         logger.info(f'Size of Training Set: {len(train_data)}')
@@ -290,6 +302,7 @@ def main(model_cnf):
 
             logger.info('Training')
             for i in range(train_params['epochs']):
+                # pdb.set_trace()
                 train_loss = train(device, model, opt, loss_fn, train_loader)
                 ema(ema_model, model, train_params['ema_decay'])
                 if i % train_params['interval'] == 0:
