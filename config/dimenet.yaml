@@ -1,10 +1,10 @@
 name: "dimenet"
-logname: ""
-with_dyn: True
-ori: False
+logname: "Bin"
+with_dyn: False
+clean: True
 
 model:
-  emb_size: 128
+  emb_size: 96
   num_blocks: 6
   num_bilinear: 8
   num_spherical: 7

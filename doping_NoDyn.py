@@ -18,7 +18,7 @@ class DopingDataset(QM9Dataset):
 
     def __init__(self,
                  label_keys,
-                 with_dyn,ori,
+                 with_dyn,clean,
                  edge_funcs=None,
                  cutoff=5.0,
                  raw_dir=None,
@@ -29,7 +29,7 @@ class DopingDataset(QM9Dataset):
         self.with_dyn=with_dyn
         self.graph_path=None
         self.line_graph_path=None
-        self.ori=ori
+        self.clean=clean
         # self._keys = ['mu', 'alpha', 'homo', 'lumo', 'gap', 'r2', 'zpve', 'U0', 'U', 'H', 'G', 'Cv']
         self._keys = ['Energy']
         self.npz_path = "dataset/npz"
@@ -42,31 +42,52 @@ class DopingDataset(QM9Dataset):
 
     def has_cache(self):
         """ step 1, if True, goto step 5; else goto download(step 2), then step 3"""
+        bin_name='Dyn_Cut'+str(self.cutoff)
         if self.with_dyn:
-            if self.ori:
-                graph_path = f'{self.bin_path}/Ori_WithDyn_Cut'+str(self.cutoff)+'.bin'
-                line_graph_path = f'{self.bin_path}/Ori_WithDyn_Cut'+str(self.cutoff)+'line.bin'
-            else:
-                graph_path = f'{self.bin_path}/WithDyn_Cut'+str(self.cutoff)+'.bin'
-                line_graph_path = f'{self.bin_path}/WithDyn_Cut'+str(self.cutoff)+'line.bin'
+            bin_name='With'+bin_name
         else:
-            graph_path = f'{self.bin_path}/NoDyn_Cut'+str(self.cutoff)+'.bin'
-            line_graph_path = f'{self.bin_path}/NoDyn_Cut'+str(self.cutoff)+'line.bin'
-        self.graph_path=graph_path
-        self.line_graph_path=line_graph_path
-        return os.path.exists(graph_path) and os.path.exists(line_graph_path)
+            bin_name='No'+bin_name
+        if self.clean:
+            bin_name=bin_name+'_Clean'
+        else:
+            bin_name=bin_name+'_Full'
+
+        # if self.with_dyn:
+        #     if self.clean:
+        #         bin_path=
+        #         graph_path = f'{self.bin_path}/clean_WithDyn_Cut'+str(self.cutoff)+'.bin'
+        #         line_graph_path = f'{self.bin_path}/clean_WithDyn_Cut'+str(self.cutoff)+'line.bin'
+        #     else:
+        #         graph_path = f'{self.bin_path}/WithDyn_Cut'+str(self.cutoff)+'.bin'
+        #         line_graph_path = f'{self.bin_path}/WithDyn_Cut'+str(self.cutoff)+'line.bin'
+        # else:
+        #     graph_path = f'{self.bin_path}/NoDyn_Cut'+str(self.cutoff)+'.bin'
+        #     line_graph_path = f'{self.bin_path}/NoDyn_Cut'+str(self.cutoff)+'line.bin'
+        self.graph_path=f'{self.bin_path}/'+bin_name+'.bin'
+        self.line_graph_path=f'{self.bin_path}/'+bin_name+'line.bin'
+        return os.path.exists(self.graph_path) and os.path.exists(self.line_graph_path)
         # return False #Always generate new bin file
 
     def process(self):
         """ step 3 """
         # npz_path = f'{self.raw_dir}/qm9_eV.npz'
+        npz_name='Dynamic'
         if self.with_dyn:
-            if self.ori:
-                npz_path = f'{self.npz_path}/Material2615.npz'
-            else:
-                npz_path = f'{self.npz_path}/MaterialWithDynamic.npz'
+            npz_name='With'+npz_name
         else:
-            npz_path = f'{self.npz_path}/MaterialNoDynamic.npz'
+            npz_name='No'+npz_name
+        if self.clean:
+            npz_name=npz_name+'_Clean'
+        else:
+            npz_name=npz_name+'_Full'
+        npz_path=f'{self.npz_path}/'+npz_name+'.npz'
+        # if self.with_dyn:
+        #     if self.clean:
+        #         npz_path = f'{self.npz_path}/Material2615.npz'
+        #     else:
+        #         npz_path = f'{self.npz_path}/MaterialWithDynamic.npz'
+        # else:
+        #     npz_path = f'{self.npz_path}/MaterialNoDynamic.npz'
         data_dict = np.load(npz_path, allow_pickle=True)
         # data_dict['N'] contains the number of atoms in each molecule,
         # data_dict['R'] consists of the atomic coordinates,

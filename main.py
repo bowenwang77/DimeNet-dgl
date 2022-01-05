@@ -163,21 +163,22 @@ def main(model_cnf):
     model_cnf = yaml.load(Path(model_cnf))
     model_name, model_params, train_params, pretrain_params = model_cnf['name'], model_cnf['model'], model_cnf['train'], model_cnf['pretrain']
     logname=model_cnf['logname']+\
+        "SpR"+str(train_params['split_ratio'])+\
         "Dyn"+str(model_cnf['with_dyn'])+\
         "Cut"+str(model_params['cutoff'])+\
         "Emb"+str(model_params['emb_size'])+\
         ","+time_stamp
-    if model_cnf['ori']:
-        logname="Ori"+logname
+    if model_cnf['clean']:
+        logname="clean"+logname
     use_vasp=str(model_cnf['with_dyn'])
-    origin_data=str(model_cnf['ori'])
+    clean_data=str(model_cnf['clean'])
     logzero.logfile('log/'+logname+'.log')
-    logger.info(f'Model name: {model_name} | After Dynamic Process: {use_vasp} | Use original data {origin_data}')
+    logger.info(f'Model name: {model_name} | After Dynamic Process: {use_vasp} | Use cleaned data {clean_data}')
     logger.info(f'Model params: {model_params}')
     logger.info(f'Train params: {train_params}')
     wandb.init(
         
-        project="material",
+        project="Material0105",
         config=model_cnf,
         name=logname,
         # save_code=True,
@@ -192,7 +193,7 @@ def main(model_cnf):
 
     logger.info('Loading Data Set')
 
-    dataset = DopingDataset(label_keys=model_params['targets'],with_dyn=model_cnf['with_dyn'],ori=model_cnf['ori'],edge_funcs=[edge_init],cutoff=model_params['cutoff'])
+    dataset = DopingDataset(label_keys=model_params['targets'],with_dyn=model_cnf['with_dyn'],clean=model_cnf['clean'],edge_funcs=[edge_init],cutoff=model_params['cutoff'])
 
     # dataset = QM9(label_keys=model_params['targets'], edge_funcs=[edge_init])
 
@@ -212,7 +213,7 @@ def main(model_cnf):
         logger.info(f'Size of Training Set: {len(train_data)}')
         logger.info(f'Size of Validation Set: {len(valid_data)}')
         logger.info(f'Size of Test Set: {len(test_data)}')
-        for train_params['batch_size'] in [5]:
+        for train_params['batch_size'] in [train_params['batch_size']]:
         # data loader
             logger.info('batch_size')
             logger.info(train_params['batch_size'])
