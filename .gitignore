@@ -148,7 +148,7 @@ result*
 *.pth
 *.npy
 wandb
-chenliang
+
 *.csv
 
 dataset/bin/*
