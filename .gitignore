@@ -154,4 +154,7 @@ wandb
 dataset/bin/*
 dataset/csv/*
 dataset/npz/*
-OtherModel
+OtherModel/cgcnn
+OtherModel/0_benchmark
+# OtherModel/gemnet_pytorch
+OtherModel/cgcnn.zip
