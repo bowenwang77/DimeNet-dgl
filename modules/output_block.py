@@ -1,7 +1,7 @@
 import torch.nn as nn
 import dgl
 import dgl.function as fn
-
+import pdb
 from modules.initializers import GlorotOrthogonal
 
 class OutputBlock(nn.Module):
@@ -32,6 +32,7 @@ class OutputBlock(nn.Module):
     def forward(self, g):
         with g.local_scope():
             g.edata['tmp'] = g.edata['m'] * self.dense_rbf(g.edata['rbf'])
+            # pdb.set_trace()
             g.update_all(fn.copy_e('tmp', 'x'), fn.sum('x', 't'))
 
             for layer in self.dense_layers:

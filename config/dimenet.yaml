@@ -1,10 +1,10 @@
 name: "dimenet"
-logname: "Bin"
+logname: ""
 with_dyn: False
 clean: True
 
 model:
-  emb_size: 96
+  emb_size: 128
   num_blocks: 6
   num_bilinear: 8
   num_spherical: 7
@@ -25,7 +25,7 @@ train:
   lr: 0.001
   weight_decay: 0.0001
   ema_decay: 0
-  batch_size: 15
+  batch_size: 5
   epochs: 160
   early_stopping: 20
   num_workers: 12

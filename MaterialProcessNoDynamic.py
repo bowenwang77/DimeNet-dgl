@@ -4,6 +4,7 @@ from numpy.core import numeric
 import scipy.sparse as sp
 import torch
 import dgl
+import pdb
 
 from tqdm import trange
 from dgl.data import QM9Dataset
@@ -15,15 +16,12 @@ import pandas
 # num_rows=3013
 # doping_file=pandas.read_csv('Material.csv',nrows=num_rows)
 # doping_file=pandas.read_csv('dataset/csv/Material.csv',nrows=num_rows)
-file_name="WithDynamic"
-doping_file = pandas.read_csv('dataset/csv/'+file_name+'.csv')
+# pdb.set_trace()
+file_name="NoDynamic_Full"
+doping_file = pandas.read_csv('dataset/csv_correct/'+file_name+'.csv')
 num_rows = doping_file.shape[0]
 lattice=doping_file.loc[:,'lattice0':'lattice8'].to_numpy()
-# Doping_pos=doping_file.loc[:,'dopx':'dopz'].to_numpy().reshape(num_rows,1,3)
-# C_pos=doping_file.loc[:,'Cx':'Cz'].to_numpy().reshape(num_rows,1,3)
-# O_pos=doping_file.loc[:,'Ox':'Oz'].to_numpy().reshape(num_rows,1,3)
-# Cu_pos=doping_file.loc[:,'Cu0x':'Cu70z'].to_numpy().reshape(num_rows,71,3)
-Pos=doping_file.loc[:,'Ag0x':'Cu70z'].to_numpy().reshape(num_rows,74,3)
+Pos=doping_file.loc[:,'B0x':'Cu70z'].to_numpy().reshape(num_rows,74,3)
 
 Energy=doping_file.loc[:,'E'].to_numpy().reshape(num_rows,1)
 Doping_atomic_num=doping_file.loc[:,'en'].to_numpy().reshape(num_rows,1)
