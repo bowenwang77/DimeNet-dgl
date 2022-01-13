@@ -158,5 +158,5 @@ dataset/npz/*
 OtherModels/cgcnn/data
 OtherModels/cgcnn/pre-trained
 OtherModels/0_benchmark
-# OtherModel/gemnet_pytorch
+OtherModels/gemnet_pytorch/logs
 OtherModels/cgcnn.zip

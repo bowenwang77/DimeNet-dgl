@@ -1,4 +1,7 @@
 name: "dimenet++"
+logname: ""
+with_dyn: False
+clean: False
 
 model:
   emb_size: 128
@@ -15,22 +18,23 @@ model:
   num_after_skip: 2
   num_dense_output: 3
   # ['mu', 'alpha', 'homo', 'lumo', 'gap', 'r2', 'zpve', 'U0', 'U', 'H', 'G', 'Cv']
-  targets: ['mu']
+  targets: ['Energy']
 
 train:
-  num_train: 110000
-  num_valid: 10000
+  num_train: 2091 #1807,1569, 2410, 2092
+  num_valid: 261 #602,523, 301, 261
+  split_ratio: 0.6
   data_seed: 42
   lr: 0.001
   weight_decay: 0.0001
   ema_decay: 0
-  batch_size: 100
+  batch_size: 5
   epochs: 300
   early_stopping: 20
   num_workers: 18
   gpu: 0
-  interval: 50
-  step_size: 100
+  interval: 10
+  step_size: 25
   gamma: 0.3
 
 pretrain:

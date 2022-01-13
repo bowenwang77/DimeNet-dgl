@@ -99,7 +99,7 @@ class EfficientInteractionHadamard(torch.nn.Module):
         if sph.shape[2]==0:
             Kmax = 0
         else:
-            Kmax = torch.max(torch.max(Kidx + 1), torch.tensor(0))  
+            Kmax = torch.max(torch.max(Kidx + 1), torch.tensor([0]).to(Kidx.device))  
         m2 = torch.zeros(nEdges, Kmax, self.emb_size, device=self.weight.device, dtype=m.dtype)
         m2[id_reduce, Kidx] = m  # (nQuadruplets or nTriplets, emb_size) -> (nEdges, Kmax, emb_size)
 
@@ -170,7 +170,7 @@ class EfficientInteractionBilinear(torch.nn.Module):
 
         # Create (zero-padded) dense matrix of the neighboring edge embeddings.
         # maximum number of neighbors, catch empty id_reduce_ji with maximum
-        Kmax = 0 if sph.shape[2]==0 else torch.max(torch.max(Kidx + 1), torch.tensor(0))  
+        Kmax = 0 if sph.shape[2]==0 else torch.max(torch.max(Kidx + 1), torch.tensor([0]).to(Kidx.device))  
         m2 = torch.zeros(nEdges, Kmax, self.emb_size, device=self.weight.device, dtype=m.dtype)
         m2[id_reduce, Kidx] = m  # (nQuadruplets or nTriplets, emb_size) -> (nEdges, Kmax, emb_size)
 

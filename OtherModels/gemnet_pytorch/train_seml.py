@@ -19,7 +19,8 @@ from sacred import Experiment
 import torch
 from torch.utils.tensorboard import SummaryWriter
 import seml
-
+import pdb
+pdb.set_trace()
 ex = Experiment()
 seml.setup_logger(ex)
 

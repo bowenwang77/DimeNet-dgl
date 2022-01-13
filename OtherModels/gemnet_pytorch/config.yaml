@@ -60,5 +60,5 @@ patience: 5
 evaluation_interval: 7500
 save_interval: 7500
 warmup_steps: 3750
-batch_size: 32
+batch_size: 5
 num_steps: 1500000

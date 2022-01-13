@@ -150,7 +150,7 @@ class SphericalBasisLayer(torch.nn.Module):
 
             # Zero padded dense matrix
             # maximum number of neighbors, catch empty id_reduce_ji with maximum
-            Kmax = 0 if sph.shape[0]==0 else torch.max(torch.max(Kidx + 1), torch.tensor(0))  
+            Kmax = 0 if sph.shape[0]==0 else torch.max(torch.max(Kidx + 1), torch.tensor([0]).to(Kidx.device))  
             nEdges = d_scaled.shape[0]
 
             sph2 = torch.zeros(
@@ -283,7 +283,7 @@ class TensorBasisLayer(torch.nn.Module):
 
             # Zero padded dense matrix
             # maximum number of neighbors, catch empty id_reduce_ji with maximum
-            Kmax = 0 if sph.shape[0]==0 else torch.max(torch.max(Kidx + 1), torch.tensor(0))  
+            Kmax = 0 if sph.shape[0]==0 else torch.max(torch.max(Kidx + 1), torch.tensor([0]).to(Kidx.device))  
             nEdges = d_scaled.shape[0]
 
             sph2 = torch.zeros(

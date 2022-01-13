@@ -7,6 +7,7 @@ except ImportError:
     tf = None
 
 import torch
+import pdb
 from torch_scatter import scatter
 
 from .layers.embedding_block import EdgeEmbedding, AtomEmbedding
@@ -305,8 +306,9 @@ class GemNet(torch.nn.Module):
         x = torch.sum(R_ac * R_ab, dim=1)  # shape = (N,)
         # sin(alpha) = |u x v| / (|u|*|v|)
         y = torch.cross(R_ac, R_ab).norm(dim=-1)  # shape = (N,)
+        # pdb.set_trace()
         # avoid that for y == (0,0,0) the gradient wrt. y becomes NaN
-        y = torch.max(y, torch.tensor(1e-9))  
+        y = torch.max(y, torch.tensor([1e-9]).to(y.device))
         angle = torch.atan2(y, x)
         return angle
 
