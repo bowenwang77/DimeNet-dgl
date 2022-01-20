@@ -66,8 +66,8 @@ class DopingDataset(QM9Dataset):
         #     line_graph_path = f'{self.bin_path}/NoDyn_Cut'+str(self.cutoff)+'line.bin'
         self.graph_path=f'{self.bin_path}/'+bin_name+'.bin'
         self.line_graph_path=f'{self.bin_path}/'+bin_name+'line.bin'
-        return os.path.exists(self.graph_path) and os.path.exists(self.line_graph_path)
-        # return False #Always generate new bin file
+        # return os.path.exists(self.graph_path) and os.path.exists(self.line_graph_path)
+        return False #Always generate new bin file
 
     def process(self):
         """ step 3 """
