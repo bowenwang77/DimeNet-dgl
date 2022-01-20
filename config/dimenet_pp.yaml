@@ -1,7 +1,7 @@
 name: "dimenet++"
 logname: ""
 with_dyn: False
-clean: False
+clean: True
 
 model:
   emb_size: 128

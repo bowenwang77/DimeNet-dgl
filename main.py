@@ -19,7 +19,7 @@ from dgl.data.utils import Subset
 from sklearn.metrics import mean_absolute_error
 from qm9 import QM9
 # from doping import DopingDataset
-from doping_NoDyn import DopingDataset
+from doping import DopingDataset
 from modules.initializers import GlorotOrthogonal
 from modules.dimenet import DimeNet
 from modules.dimenet_pp import DimeNetPP
@@ -303,7 +303,7 @@ def main(model_cnf):
 
             logger.info('Training')
             for i in range(train_params['epochs']):
-                # pdb.set_trace()
+                pdb.set_trace()
                 train_loss = train(device, model, opt, loss_fn, train_loader)
                 ema(ema_model, model, train_params['ema_decay'])
                 if i % train_params['interval'] == 0:

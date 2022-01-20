@@ -2,7 +2,7 @@ import numpy as np
 import scipy.sparse as sp
 import numba
 import torch
-
+import pdb
 
 class DataContainer:
     """
@@ -54,6 +54,7 @@ class DataContainer:
                 "id4_reduce_intm_ab",
                 "id4_expand_intm_ab",
             ]
+        pdb.set_trace()
         self.triplets_only = triplets_only
         self.cutoff = cutoff
         self.int_cutoff = int_cutoff

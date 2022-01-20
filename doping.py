@@ -5,6 +5,7 @@ import scipy.sparse as sp
 import torch
 import dgl
 import torch.nn.functional as F
+import pdb
 
 from tqdm import trange
 from dgl.data import QM9Dataset
@@ -65,8 +66,8 @@ class DopingDataset(QM9Dataset):
         #     line_graph_path = f'{self.bin_path}/NoDyn_Cut'+str(self.cutoff)+'line.bin'
         self.graph_path=f'{self.bin_path}/'+bin_name+'.bin'
         self.line_graph_path=f'{self.bin_path}/'+bin_name+'line.bin'
-        return os.path.exists(self.graph_path) and os.path.exists(self.line_graph_path)
-        # return False #Always generate new bin file
+        # return os.path.exists(self.graph_path) and os.path.exists(self.line_graph_path)
+        return False #Always generate new bin file
 
     def process(self):
         """ step 3 """
@@ -89,6 +90,7 @@ class DopingDataset(QM9Dataset):
         # else:
         #     npz_path = f'{self.npz_path}/MaterialNoDynamic.npz'
         data_dict = np.load(npz_path, allow_pickle=True)
+        # pdb.set_trace()
         # data_dict['N'] contains the number of atoms in each molecule,
         # data_dict['R'] consists of the atomic coordinates,
         # data_dict['Z'] consists of the atomic numbers.

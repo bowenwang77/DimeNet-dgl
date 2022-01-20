@@ -160,3 +160,5 @@ OtherModels/cgcnn/pre-trained
 OtherModels/0_benchmark
 OtherModels/gemnet_pytorch/logs
 OtherModels/cgcnn.zip
+dataset/surf-total
+dataset/npz_combine

@@ -30,6 +30,7 @@ from gemnet.training.metrics import Metrics, BestMetrics
 from gemnet.training.data_container import DataContainer
 from gemnet.training.data_provider import DataProvider
 
+import pdb
 import torch
 from torch.utils.tensorboard import SummaryWriter
 
@@ -194,6 +195,7 @@ data_container = DataContainer(
     dataset, cutoff=cutoff, int_cutoff=int_cutoff, triplets_only=triplets_only
 )
 
+pdb.set_trace()
 if val_dataset is not None:
     # Initialize DataProvider
     if num_train == 0:
