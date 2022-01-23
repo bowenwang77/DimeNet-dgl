@@ -33,7 +33,7 @@ class DopingDataset(QM9Dataset):
         self.clean=clean
         # self._keys = ['mu', 'alpha', 'homo', 'lumo', 'gap', 'r2', 'zpve', 'U0', 'U', 'H', 'G', 'Cv']
         self._keys = ['Energy']
-        self.npz_path = "dataset/npz"
+        self.npz_path = "dataset/npz_correct"
         self.bin_path = "dataset/bin"
         super(DopingDataset, self).__init__(label_keys=label_keys,
                                   cutoff=cutoff,
@@ -98,6 +98,7 @@ class DopingDataset(QM9Dataset):
         # so you need this value to select the correct atoms for each molecule.
         self.N = data_dict['N']
         self.R = data_dict['R']
+        self.R_relax = data_dict['R_relax']
         self.Z = data_dict['Z']
         self.lattice=data_dict['lattice']
         self.N_cumsum = np.concatenate([[0], np.cumsum(self.N)])
@@ -119,6 +120,7 @@ class DopingDataset(QM9Dataset):
             n_atoms = self.N[idx]
             # get all the atomic coordinates of the idx-th molecular graph
             R = self.R[self.N_cumsum[idx]:self.N_cumsum[idx + 1]]
+            R_relax = self.R_relax[self.N_cumsum[idx]:self.N_cumsum[idx + 1]]
             # calculate the distance between all atoms
             dist = np.linalg.norm(R[:, None, :] - R[None, :, :], axis=-1)
             # keep all edges that don't exceed the cutoff and delete self-loops
@@ -127,9 +129,10 @@ class DopingDataset(QM9Dataset):
             u, v = torch.tensor(adj.row), torch.tensor(adj.col)
             g = dgl_graph((u, v))
             g.ndata['R'] = torch.tensor(R, dtype=torch.float32)
+            g.ndata['R_relax'] = torch.tensor(R_relax, dtype=torch.float32)
             g.ndata['Z'] = torch.tensor(self.Z[self.N_cumsum[idx]:self.N_cumsum[idx + 1]], dtype=torch.long)
             
-            # add user-defined features
+            # add user-defined features on edge
             if self.edge_funcs is not None:
                 for func in self.edge_funcs:
                     g.apply_edges(func)
@@ -140,6 +143,7 @@ class DopingDataset(QM9Dataset):
             # calculate the distance between all atoms
             for i,j in [(1,0),(1,1),(0,1),(-1,1),(-1,0),(-1,-1),(0,-1),(1,-1)]:
                 R_inf=R+self.lattice[idx,:3]*i+self.lattice[idx,3:6]*j
+                R_inf_relax = R_relax+self.lattice[idx,:3]*i+self.lattice[idx,3:6]*j
                 dist = np.linalg.norm(R[:, None, :] - R_inf[None, :, :], axis=-1)
                 # keep all edges that don't exceed the cutoff 
                 adj = sp.csr_matrix(dist <= self.cutoff)
@@ -147,8 +151,13 @@ class DopingDataset(QM9Dataset):
                 u, v = torch.tensor(adj.row), torch.tensor(adj.col)
 
                 R_src,R_dst=torch.from_numpy(R[u]).to(torch.float32),torch.from_numpy(R_inf[v]).to(torch.float32)
+                R_src_relax, R_dst_relax =torch.from_numpy(R_relax[u]).to(torch.float32),torch.from_numpy(R_inf_relax[v]).to(torch.float32)
                 dist_inf = torch.sqrt(F.relu(torch.sum((R_src - R_dst) ** 2, -1)))
-                g.add_edges(u,v,{'d':dist_inf.reshape(u.shape[0]),'o':(R_src-R_dst).reshape(u.shape[0],3)})
+                dist_inf_relax = torch.sqrt(F.relu(torch.sum((R_src_relax - R_dst_relax) ** 2, -1)))
+                g.add_edges(u,v,{'d':dist_inf.reshape(u.shape[0]), \
+                    'd_relax':dist_inf_relax.reshape(u.shape[0]), \
+                    'o':(R_src-R_dst).reshape(u.shape[0],3), \
+                    'o_relax':(R_src_relax-R_dst_relax).reshape(u.shape[0],3)})
 
             graphs.append(g)
             l_g = dgl.line_graph(g, backtracking=False)

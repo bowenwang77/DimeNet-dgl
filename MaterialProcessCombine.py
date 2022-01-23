@@ -12,14 +12,10 @@ from dgl.data.utils import load_graphs, save_graphs
 from dgl.convert import graph as dgl_graph
 import pandas
 
-# num_rows=2615 
-# num_rows=3013
-# doping_file=pandas.read_csv('Material.csv',nrows=num_rows)
-# doping_file=pandas.read_csv('dataset/csv/Material.csv',nrows=num_rows)
-# pdb.set_trace()
+Correct_periodic_coordinate=True
 
-file_name="NoDynamic_Full"
-relax_file_name = "WithDynamic_Full"
+file_name="NoDynamic_Clean"
+relax_file_name = "WithDynamic_Clean"
 doping_file = pandas.read_csv('dataset/csv_complete/'+file_name+'.csv')
 num_rows = doping_file.shape[0]
 lattice=doping_file.loc[:,'lattice0':'lattice8'].to_numpy()
@@ -28,56 +24,76 @@ Pos=doping_file.loc[:,'B0x':'Cu70z'].to_numpy().reshape(num_rows,74,3)
 Energy=doping_file.loc[:,'E'].to_numpy().reshape(num_rows,1)
 Doping_atomic_num=doping_file.loc[:,'en'].to_numpy().reshape(num_rows,1)
 
-##compute the cartisan coordinate
-# Doping_cpos = Doping_pos@lattice
-# Cu_pos=Cu_pos@lattice
-# O_cpos=O_pos@lattice
-# C_cpos=C_pos@lattice
+##compute the cartisan coordinate and fractional coordinate
 Cartisan_pos = Pos
 doping_file_relax = pandas.read_csv('dataset/csv_complete/'+relax_file_name+'.csv')
 relax_num_rows = doping_file_relax.shape[0]
 Cartisan_pos_relax = doping_file_relax.loc[:,'B0x':'Cu70z'].to_numpy().reshape(num_rows,74,3)
-
+lattice_inv = np.linalg.inv(lattice.reshape(num_rows,3,3))
+Frac_pos = Cartisan_pos@lattice_inv
+Frac_pos_relax = Cartisan_pos_relax@lattice_inv
 # Cartisan_pos=Pos@lattice.reshape(num_rows,3,3)
 
-# Cartisan_pos[7][~np.isnan(Cartisan_pos[7][:,0])]
 
 ##Final data
 
-##Material_dataset loop: [Carbon, Oxygen,Doping element,  Cu]
+##dataset loop: [Carbon, Oxygen,Doping element,  Cu]
 
-
-Material_dataset={'N':[],'Z':[],'R':[],'R_relax':[],'Energy':[],'lattice':[]}
+# pdb.set_trace()
+dataset={'N':[],'Z':[],'R':[],'R_relax':[],'Frac_R':[],'Frac_R_relax':[],'Energy':[],'lattice':[]}
 for i in range(num_rows):
-    if (Energy[i].item()>-5) & (Energy[i].item()<1):
+    # pdb.set_trace()
+    # if (Energy[i].item()>-5) & (Energy[i].item()<1):
+    if True:
         Num_atom=(~np.isnan(Cartisan_pos[i][:,0])).sum()
         
-        Material_dataset['N'].append(Num_atom)#num of atom in each molecule
-        Material_dataset['R'].append(Cartisan_pos[i][:Num_atom])#3D coordinate
-        Material_dataset['R_relax'].append(Cartisan_pos_relax[i][:Num_atom])
-        Material_dataset['Z'].append(Doping_atomic_num[i].item())
-        Material_dataset['Z'].append(6)#Atomic number
-        Material_dataset['Z'].append(8)
-        # Material_dataset['Z'].append(Doping_atomic_num[i].item())
-        Material_dataset['Z'].extend([29]*(Num_atom-3))
-        Material_dataset['Energy'].append(Energy[i].item())
-        Material_dataset['lattice'].append(lattice[i])
+        dataset['N'].append(Num_atom)#num of atom in each molecule
+        dataset['R'].append(Cartisan_pos[i][:Num_atom])#3D coordinate
 
-Material_dataset['N']=np.asarray(Material_dataset['N'])
-Material_dataset['R']=np.concatenate(Material_dataset['R'],axis=0)
-Material_dataset['R_relax']=np.concatenate(Material_dataset['R_relax'],axis=0)
-Material_dataset['Z']=np.asarray(Material_dataset['Z'])
-Material_dataset['Energy']=np.asarray(Material_dataset['Energy'])
-Material_dataset['lattice']=np.asarray(Material_dataset['lattice'])
-pdb.set_trace()
-# np.savez('/root/.dgl/MaterialNoDynamic.npz',
-#     N=Material_dataset['N'],R=Material_dataset['R'],Z=Material_dataset['Z'],Energy=Material_dataset['Energy'],lattice=Material_dataset['lattice'])
-# np.savez('dataset/npz/Material2615.npz',
-#     N=Material_dataset['N'],R=Material_dataset['R'],Z=Material_dataset['Z'],Energy=Material_dataset['Energy'],lattice=Material_dataset['lattice'])
-np.savez('dataset/npz_combine/'+file_name+'.npz',
-    N=Material_dataset['N'],R=Material_dataset['R'],R_relax=Material_dataset['R_relax'],Z=Material_dataset['Z'],Energy=Material_dataset['Energy'],lattice=Material_dataset['lattice'])
-# Material_dataset['R']=np.concatenate(Material_dataset['R'],axis=0)
-# npz_path='/root/.dgl/qm9_eV.npz'
-# data_dict = np.load(npz_path, allow_pickle=True)
+        dataset['Frac_R'].append(Frac_pos[i][:Num_atom])
+        dataset['Frac_R_relax'].append(Frac_pos_relax[i][:Num_atom])
+        dataset['Z'].append(Doping_atomic_num[i].item())
+        dataset['Z'].append(6)#Atomic number
+        dataset['Z'].append(8)
+        # dataset['Z'].append(Doping_atomic_num[i].item())
+        dataset['Z'].extend([29]*(Num_atom-3))
+        dataset['Energy'].append(Energy[i].item())
+        dataset['lattice'].append(lattice[i])
+        # pdb.set_trace()
+        if Correct_periodic_coordinate:
+            print(len(dataset['Frac_R_relax']), 'id ', i)
+            Drift=dataset['Frac_R_relax'][i]-dataset['Frac_R'][i]
+            rowid, colid = np.where(np.abs(Drift)>0.8)
+            for ids in range(rowid.shape[0]):
+                if dataset['Frac_R_relax'][i][rowid[ids],colid[ids]]>0.5:
+                    dataset['Frac_R_relax'][i][rowid[ids],colid[ids]]-=1
+                else:
+                    dataset['Frac_R_relax'][i][rowid[ids],colid[ids]]+=1
+            dataset['R_relax'].append(dataset['Frac_R_relax'][i]@(dataset['lattice'][i].reshape(3,3)))
+        else:
+            dataset['R_relax'].append(Cartisan_pos_relax[i][:Num_atom])
+
+
+# pdb.set_trace()
+dataset['N']=np.asarray(dataset['N'])
+dataset['R']=np.concatenate(dataset['R'],axis=0)
+dataset['R_relax']=np.concatenate(dataset['R_relax'],axis=0)
+dataset['Frac_R']=np.concatenate(dataset['Frac_R'],axis=0)
+dataset['Frac_R_relax']=np.concatenate(dataset['Frac_R_relax'],axis=0)
+
+dataset['Z']=np.asarray(dataset['Z'])
+dataset['Energy']=np.asarray(dataset['Energy'])
+dataset['lattice']=np.asarray(dataset['lattice'])
+# pdb.set_trace()
+
+np.savez('dataset/npz_correct/'+file_name+'.npz',
+    N=dataset['N'],R=dataset['R'],R_relax=dataset['R_relax'],Frac_R=dataset['Frac_R'],Frac_R_relax=dataset['Frac_R_relax'],Z=dataset['Z'],Energy=dataset['Energy'],lattice=dataset['lattice'])
+
+##Correct coordinates of atom that passed the periodic boundary during relax
+#Identify weird coordinates
+# row,column=np.where(np.abs(dataset['Frac_R_relax']-dataset['Frac_R'])>0.8)
+
+# np.savez('dataset/npz_combine/'+file_name+'.npz',
+#     N=dataset['N'],R=dataset['R'],R_relax=dataset['R_relax'],Frac_R=dataset['Frac_R'],Frac_R_relax=dataset['Frac_R_relax'],Z=dataset['Z'],Energy=dataset['Energy'],lattice=dataset['lattice'])
 
 print()

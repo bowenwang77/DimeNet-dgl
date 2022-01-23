@@ -1,5 +1,5 @@
 name: "dimenet"
-logname: "WithInf"
+logname: "Joint2"
 with_dyn: False
 clean: True
 
@@ -33,6 +33,7 @@ train:
   interval: 10
   step_size: 25
   gamma: 0.3
+  alpha: 10.0
 
 pretrain:
   flag: False

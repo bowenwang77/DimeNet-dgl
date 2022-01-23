@@ -1,7 +1,7 @@
 name: "dimenet++"
-logname: ""
-with_dyn: False
-clean: True
+logname: "Comp"
+with_dyn: True
+clean: False
 
 model:
   emb_size: 128
@@ -12,7 +12,7 @@ model:
   num_spherical: 7
   num_radial: 6
   envelope_exponent: 5
-  cutoff: 5.0
+  cutoff: 4.5
   extensive: True
   num_before_skip: 1
   num_after_skip: 2

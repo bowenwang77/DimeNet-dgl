@@ -98,6 +98,7 @@ class DimeNet(nn.Module):
                              num_after_skip=num_after_skip,
                              activation=activation) for _ in range(num_blocks)
         })
+        self.edge_pred = nn.Linear(emb_size, 1,bias=True)
     
     def edge_init(self, edges):
         # Calculate angles k -> j -> i
@@ -129,5 +130,5 @@ class DimeNet(nn.Module):
         for i in range(self.num_blocks):
             g = self.interaction_blocks[i](g, l_g)
             P += self.output_blocks[i + 1](g)
-        
-        return P
+        drift = self.edge_pred(g.edata['m'])
+        return P,drift
