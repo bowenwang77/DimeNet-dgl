@@ -166,13 +166,13 @@ def main(model_cnf):
     yaml = YAML(typ='safe')
     model_cnf = yaml.load(Path(model_cnf))
     model_name, model_params, train_params, pretrain_params = model_cnf['name'], model_cnf['model'], model_cnf['train'], model_cnf['pretrain']
-    for i in range(3):
+    for train_params['data_seed'] in [1,2,3,4,5]:
         for train_params['batch_size'] in [train_params['batch_size']]:
             ###Settings of logger
             time_stamp = time.strftime('%Y-%m-%d %H:%M:%S',
                     time.localtime(int(round(time.time() * 1000)) / 1000))
             logname=model_cnf['logname']+\
-                "SpR"+str(train_params['split_ratio'])+\
+                "Sd"+str(train_params['data_seed'])+\
                 "Dyn"+str(model_cnf['with_dyn'])+\
                 "Cut"+str(model_params['cutoff'])+\
                 "Emb"+str(model_params['emb_size'])+\

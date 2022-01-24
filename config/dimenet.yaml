@@ -1,5 +1,5 @@
 name: "dimenet"
-logname: "Joint2"
+logname: "FTune"
 with_dyn: False
 clean: True
 
@@ -21,7 +21,7 @@ train:
   num_train: 2091 #1807,1569, 2410, 2092
   num_valid: 261 #602,523, 301, 261
   split_ratio: 0.6
-  data_seed: 41
+  data_seed: 5
   lr: 0.001
   weight_decay: 0.0001
   ema_decay: 0
@@ -33,7 +33,7 @@ train:
   interval: 10
   step_size: 25
   gamma: 0.3
-  alpha: 10.0
+  alpha: 150
 
 pretrain:
   flag: False

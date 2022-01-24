@@ -8,11 +8,11 @@ import torch.nn.functional as F
 import pdb
 
 from tqdm import trange
-from dgl.data import QM9Dataset
+from dgl.data import DGLDataset
 from dgl.data.utils import load_graphs, save_graphs
 from dgl.convert import graph as dgl_graph
 
-class DopingDataset(QM9Dataset):
+class DopingDataset(DGLDataset):
     r"""
     """
 
@@ -23,6 +23,7 @@ class DopingDataset(QM9Dataset):
                  edge_funcs=None,
                  cutoff=5.0,
                  raw_dir=None,
+                 save_dir = None,
                  force_reload=False,
                  verbose=False):
 
@@ -34,12 +35,26 @@ class DopingDataset(QM9Dataset):
         # self._keys = ['mu', 'alpha', 'homo', 'lumo', 'gap', 'r2', 'zpve', 'U0', 'U', 'H', 'G', 'Cv']
         self._keys = ['Energy']
         self.npz_path = "dataset/npz_correct"
-        self.bin_path = "dataset/bin"
-        super(DopingDataset, self).__init__(label_keys=label_keys,
-                                  cutoff=cutoff,
-                                  raw_dir=raw_dir,
+        self.bin_path = "dataset/bin_test"
+
+        self.cutoff = cutoff
+        self.label_keys = label_keys
+        self._save_dir = save_dir
+        super(DopingDataset, self).__init__(raw_dir=raw_dir,
                                   force_reload=force_reload,
-                                  verbose=verbose)
+                                  verbose=verbose,
+                                  name = "mat")
+
+    def _load(self):
+        load_flag = not self._force_reload and self.has_cache()
+
+        if load_flag:
+            self.load()
+        if not load_flag:
+            self.process()
+            self.save()
+            if self.verbose:
+                print('Done saving data into cached files.')
 
     def has_cache(self):
         """ step 1, if True, goto step 5; else goto download(step 2), then step 3"""
@@ -52,26 +67,16 @@ class DopingDataset(QM9Dataset):
             bin_name=bin_name+'_Clean'
         else:
             bin_name=bin_name+'_Full'
-
-        # if self.with_dyn:
-        #     if self.clean:
-        #         bin_path=
-        #         graph_path = f'{self.bin_path}/clean_WithDyn_Cut'+str(self.cutoff)+'.bin'
-        #         line_graph_path = f'{self.bin_path}/clean_WithDyn_Cut'+str(self.cutoff)+'line.bin'
-        #     else:
-        #         graph_path = f'{self.bin_path}/WithDyn_Cut'+str(self.cutoff)+'.bin'
-        #         line_graph_path = f'{self.bin_path}/WithDyn_Cut'+str(self.cutoff)+'line.bin'
-        # else:
-        #     graph_path = f'{self.bin_path}/NoDyn_Cut'+str(self.cutoff)+'.bin'
-        #     line_graph_path = f'{self.bin_path}/NoDyn_Cut'+str(self.cutoff)+'line.bin'
         self.graph_path=f'{self.bin_path}/'+bin_name+'.bin'
         self.line_graph_path=f'{self.bin_path}/'+bin_name+'line.bin'
         return os.path.exists(self.graph_path) and os.path.exists(self.line_graph_path)
         # return False #Always generate new bin file
 
+    def _download(self):
+        raise Exception('Dataset not provided!')
+
     def process(self):
         """ step 3 """
-        # npz_path = f'{self.raw_dir}/qm9_eV.npz'
         npz_name='Dynamic'
         if self.with_dyn:
             npz_name='With'+npz_name
@@ -82,15 +87,7 @@ class DopingDataset(QM9Dataset):
         else:
             npz_name=npz_name+'_Full'
         npz_path=f'{self.npz_path}/'+npz_name+'.npz'
-        # if self.with_dyn:
-        #     if self.clean:
-        #         npz_path = f'{self.npz_path}/Material2615.npz'
-        #     else:
-        #         npz_path = f'{self.npz_path}/MaterialWithDynamic.npz'
-        # else:
-        #     npz_path = f'{self.npz_path}/MaterialNoDynamic.npz'
         data_dict = np.load(npz_path, allow_pickle=True)
-        # pdb.set_trace()
         # data_dict['N'] contains the number of atoms in each molecule,
         # data_dict['R'] consists of the atomic coordinates,
         # data_dict['Z'] consists of the atomic numbers.
@@ -196,3 +193,18 @@ class DopingDataset(QM9Dataset):
             Property values of molecular graphs
         """
         return self.graphs[idx], self.line_graphs[idx], self.label[idx]
+    def __len__(self):
+        r"""Number of graphs in the dataset.
+
+        Return
+        -------
+        int
+        """
+        return self.label.shape[0]
+if __name__ == '__main__':
+    dd = DopingDataset(['Energy'],
+                       raw_dir=r'./dataset/npz_correct',
+                       save_dir=r'./dataset/bin_test',
+                       clean=False,
+                       cutoff=3.0,
+                       with_dyn=True)
