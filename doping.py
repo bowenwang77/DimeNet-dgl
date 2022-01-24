@@ -35,7 +35,7 @@ class DopingDataset(DGLDataset):
         # self._keys = ['mu', 'alpha', 'homo', 'lumo', 'gap', 'r2', 'zpve', 'U0', 'U', 'H', 'G', 'Cv']
         self._keys = ['Energy']
         self.npz_path = "dataset/npz_correct"
-        self.bin_path = "dataset/bin_test"
+        self.bin_path = "dataset/bin"
 
         self.cutoff = cutoff
         self.label_keys = label_keys
@@ -69,8 +69,8 @@ class DopingDataset(DGLDataset):
             bin_name=bin_name+'_Full'
         self.graph_path=f'{self.bin_path}/'+bin_name+'.bin'
         self.line_graph_path=f'{self.bin_path}/'+bin_name+'line.bin'
-        return os.path.exists(self.graph_path) and os.path.exists(self.line_graph_path)
-        # return False #Always generate new bin file
+        # return os.path.exists(self.graph_path) and os.path.exists(self.line_graph_path)
+        return False #Always generate new bin file
 
     def _download(self):
         raise Exception('Dataset not provided!')
