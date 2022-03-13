@@ -162,3 +162,5 @@ OtherModels/gemnet_pytorch/logs
 OtherModels/cgcnn.zip
 dataset/surf-total
 dataset/npz_combine
+dataset/npz_temp
+dataset/npz_correct

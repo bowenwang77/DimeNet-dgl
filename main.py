@@ -166,7 +166,7 @@ def main(model_cnf):
     yaml = YAML(typ='safe')
     model_cnf = yaml.load(Path(model_cnf))
     model_name, model_params, train_params, pretrain_params = model_cnf['name'], model_cnf['model'], model_cnf['train'], model_cnf['pretrain']
-    for train_params['data_seed'] in [1,2,3,4,5]:
+    for train_params['data_seed'] in [9]:
         for train_params['batch_size'] in [train_params['batch_size']]:
             ###Settings of logger
             time_stamp = time.strftime('%Y-%m-%d %H:%M:%S',
@@ -187,7 +187,7 @@ def main(model_cnf):
             logger.info(f'Train params: {train_params}')
             wandb.init(
                 
-                project="Material0105",
+                project="Material0125",
                 config=model_cnf,
                 name=logname,
                 # save_code=True,
